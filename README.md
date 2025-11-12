@@ -1,34 +1,56 @@
-# 🎨 Real-Time Edge Detection Viewer
+# 📱 Real-Time Edge Detection Viewer
 
-[![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com/)
-[![OpenCV](https://img.shields.io/badge/OpenCV-C%2B%2B-blue.svg)](https://opencv.org/)
-[![OpenGL ES](https://img.shields.io/badge/OpenGL-ES%202.0-red.svg)](https://www.khronos.org/opengles/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Web-blue.svg)](https://www.typescriptlang.org/)
+A high-performance Android application that captures camera frames, processes them using OpenCV (C++), and displays results with OpenGL ES 2.0. Includes a TypeScript web viewer for displaying processed frames.
 
-A high-performance Android application that captures camera frames, processes them using OpenCV (via JNI/NDK), and displays the results using OpenGL ES 2.0. Includes a TypeScript-based web viewer for displaying processed frames.
+---
 
-## 📸 Screenshots & Demo
+## 📸 Screenshots
 
-> **Note:** Add screenshots of your running app here after building the project.
+### Android App in Action
 
-![App Demo](docs/demo.gif)
+**Raw Camera Mode**  
+![Raw Camera](images/test_raw.jpg)
 
-## ✨ Features
+**Invert Shader Effect**  
+![Invert Effect](images/test_invert.jpg)
 
-### Android Application
-- ✅ **Real-time Camera Capture** using Camera2 API
-- ✅ **OpenCV C++ Processing** via JNI for Canny edge detection
-- ✅ **OpenGL ES 2.0 Rendering** for smooth 15-30 FPS display
-- ✅ **Toggle Mode** - Switch between raw camera feed and processed edges
-- ✅ **FPS Counter** - Real-time performance monitoring
-- ✅ **Modular Architecture** - Clean separation of concerns
+**Edge Detection Mode**  
+![Edge Detection](images/test_edge.jpg)
 
-### TypeScript Web Viewer
-- ✅ **Static Frame Display** with Canvas API
-- ✅ **Frame Statistics Overlay** (FPS, resolution, processing time)
-- ✅ **Responsive Design** for various screen sizes
-- ✅ **Type-Safe Implementation** using TypeScript
-- ✅ **Extensible** - Ready for WebSocket/HTTP integration
+*Features visible: Live camera feed, shader effects (Normal, Grayscale, Invert, Sepia, Edge Enhance), FPS counter, toggle button*
+
+---
+
+## ✅ Features Implemented
+
+### Must-Have Features
+1. **📷 Camera Feed Integration (Android)**
+   - ✅ `SurfaceTexture` for capturing camera frames
+   - ✅ Camera2 API with repeating capture stream
+   - ✅ 1280x720 resolution at 9+ FPS
+
+2. **🔧 Frame Processing via OpenCV (C++)**
+   - ✅ JNI bridge to native code
+   - ✅ **Canny Edge Detection** (low: 50, high: 150)
+   - ✅ **Grayscale filter** option
+   - ✅ Full RGBA processing pipeline
+
+3. **🎨 Render Output with OpenGL ES**
+   - ✅ OpenGL ES 2.0 rendering
+   - ✅ External OES texture from camera
+   - ✅ Real-time performance (9 FPS achieved)
+
+4. **🌐 Web Viewer (TypeScript)**
+   - ✅ TypeScript + HTML implementation
+   - ✅ Canvas-based frame display
+   - ✅ Stats overlay (FPS, resolution, processing time)
+   - ✅ Proper project setup with `tsconfig.json`
+
+### Bonus Features
+- ⭐ **Toggle Button**: Switch between Raw Camera and Edge Detection modes
+- ⭐ **FPS Counter**: Real-time performance monitoring (visible on screen)
+- ⭐ **OpenGL Shader Effects**: 5 visual effects (Normal, Grayscale, Invert, Sepia, Edge Enhance)
+- ⭐ **HTTP Server**: Full REST API with 3 endpoints (`/`, `/latest-frame`, `/status`)
 
 ## 🏗️ Architecture
 
@@ -86,439 +108,220 @@ A high-performance Android application that captures camera frames, processes th
 1. **Camera2 API** captures frames → `SurfaceTexture`
 2. **OpenGL ES** renders texture to screen (raw mode)
 3. When processing enabled:
-   - Frame data extracted from texture
+   - Frame data extracted from texture**
    - Sent to **JNI** bridge (`native-lib.cpp`)
    - **EdgeProcessor** applies Canny edge detection via **OpenCV**
    - Processed frame returned and rendered via **OpenGL ES**
 
+---
+
 ## 🛠️ Setup Instructions
 
 ### Prerequisites
-
 - **Android Studio** Arctic Fox (2020.3.1) or later
 - **Android SDK** API Level 24+ (Android 7.0+)
-- **NDK** r21 or later (Android Studio includes this)
-- **CMake** 3.22.1+ (bundled with Android Studio)
-- **OpenCV Android SDK** 4.5.0+ ([Download here](https://opencv.org/releases/))
-- **Node.js** 16+ and npm (for TypeScript web viewer)
-- **Git** for version control
+- **NDK** r21+ (included in Android Studio)
+- **OpenCV Android SDK 4.10.0**
+- **Node.js** 14+ and npm (for web viewer)
 
-### Step 1: Clone the Repository
-
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/Sameerbeedi/Real-Time-Edge-Detection-Viewer.git
-cd Real-Time-Edge-Detection-Viewer
+git clone https://github.com/Sameerbeedi/Real-Time-Edge-Detection.git
+cd Real-Time-Edge-Detection
 ```
 
-### Step 2: Download OpenCV Android SDK
+### 2. Install OpenCV Android SDK
+```bash
+# Download OpenCV 4.10.0 for Android
+wget https://github.com/opencv/opencv/releases/download/4.10.0/opencv-4.10.0-android-sdk.zip
+unzip opencv-4.10.0-android-sdk.zip
 
-1. Download OpenCV Android SDK from [opencv.org/releases](https://opencv.org/releases/)
-2. Extract the SDK
-3. Copy the SDK to: `app/src/main/cpp/opencv/`
-   
-   Your structure should look like:
-   ```
-   app/src/main/cpp/opencv/
-   ├── sdk/
-   │   ├── native/
-   │   │   ├── jni/
-   │   │   │   ├── include/
-   │   │   │   └── libs/
-   │   │   └── ...
-   ```
-
-4. Update `app/src/main/cpp/CMakeLists.txt` if needed to point to the correct OpenCV path:
-   ```cmake
-   set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/opencv/sdk/native/jni)
-   ```
-
-### Step 3: Build Android Application
-
-1. Open the project in **Android Studio**
-2. Sync Gradle files (Android Studio will prompt automatically)
-3. Build the project: **Build → Make Project** (or `Ctrl+F9` / `Cmd+F9`)
-
-#### Troubleshooting Build Issues
-
-If you encounter OpenCV linking errors:
-- Verify OpenCV SDK path in `CMakeLists.txt`
-- Check that OpenCV `.so` files exist in `opencv/sdk/native/libs/arm64-v8a/`
-- Clean and rebuild: **Build → Clean Project**, then **Build → Rebuild Project**
-
-### Step 4: Deploy to Android Device
-
-#### Option A: Deploy via Android Studio (Recommended)
-
-1. **Enable USB Debugging on Your Android Device:**
-   - Go to **Settings → About Phone**
-   - Tap **Build Number** 7 times to enable Developer Options
-   - Go to **Settings → Developer Options**
-   - Enable **USB Debugging**
-
-2. **Connect Your Device:**
-   - Connect your Android device to your computer via USB
-   - Accept the "Allow USB Debugging?" prompt on your device
-   - Verify connection: In Android Studio, you should see your device in the device dropdown
-
-3. **Run the App:**
-   - Click the **Run** button (green triangle) or press `Shift+F10`
-   - Select your device from the deployment target list
-   - Wait for the app to build and install
-   - The app will automatically launch on your device
-
-#### Option B: Deploy via Command Line (Gradle)
-
-```powershell
-# Build debug APK
-./gradlew assembleDebug
-
-# Install on connected device
-./gradlew installDebug
-
-# Launch the app
-adb shell am start -n com.example.edgedetectionviewer/.MainActivity
+# Copy to project (adjust path as needed)
+cp -r OpenCV-android-sdk/sdk app/src/main/cpp/opencv
 ```
 
-The APK will be located at: `app/build/outputs/apk/debug/app-debug.apk`
+Or manually:
+1. Download from: https://opencv.org/releases/
+2. Extract and place `sdk/` folder in: `app/src/main/cpp/opencv/`
 
-#### Option C: Deploy via Android Emulator
-
-If you don't have a physical device:
-
-1. **Create an Emulator:**
-   - In Android Studio: **Tools → Device Manager**
-   - Click **Create Device**
-   - Select a device (e.g., Pixel 5)
-   - Download and select a system image (API 24+, recommended: API 34)
-   - Click **Finish**
-
-2. **Configure Emulator Camera:**
-   - Edit the emulator settings
-   - Set **Front Camera** and **Back Camera** to **Webcam0** (or Virtual scene)
-
-3. **Run the App:**
-   - Start the emulator
-   - Click **Run** and select the emulator
-   - Grant camera permissions when prompted
-
-#### Option D: Build Release APK for Distribution
-
-```powershell
-# Build release APK (unsigned)
-./gradlew assembleRelease
-
-# Or build signed APK (after configuring keystore)
-./gradlew assembleRelease --stacktrace
+### 3. Open in Android Studio
+```bash
+# Open the project folder in Android Studio
+File → Open → Select the `Real-Time-Edge-Detection` folder
 ```
 
-**To sign the APK:**
+Wait for Gradle sync to complete.
 
-1. Generate a keystore:
-   ```powershell
-   keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias
-   ```
+### 4. Build and Run (Easiest Method)
 
-2. Add to `app/build.gradle.kts`:
-   ```kotlin
-   android {
-       signingConfigs {
-           create("release") {
-               storeFile = file("path/to/my-release-key.jks")
-               storePassword = "your-password"
-               keyAlias = "my-key-alias"
-               keyPassword = "your-password"
-           }
-       }
-       buildTypes {
-           release {
-               signingConfig = signingConfigs.getByName("release")
-               // ... other config
-           }
-       }
-   }
-   ```
+#### Enable Developer Mode on Your Android Phone
+1. Open **Settings** on your Android phone
+2. Scroll to **About Phone** (or **About Device**)
+3. Find **Build Number**
+4. **Tap Build Number 7 times** rapidly
+5. You'll see: "You are now a developer!"
+6. Go back to **Settings**
+7. Find **Developer Options** (usually in System or Advanced)
+8. Toggle **USB Debugging ON**
 
-3. Build signed APK:
-   ```powershell
-   ./gradlew assembleRelease
-   ```
+#### Deploy to Device
+1. Connect your Android device to PC via USB cable
+2. On your phone, accept the **"Allow USB Debugging?"** prompt
+3. In Android Studio, click **Run** button (green ▶️) or press `Shift+F10`
+4. Select your device from the list
+5. App will build, install, and launch automatically
+6. Grant camera permission when prompted
 
-The signed APK will be at: `app/build/outputs/apk/release/app-release.apk`
-
-#### Verify Installation
-
-```powershell
-# List installed packages
-adb shell pm list packages | findstr edgedetection
-
-# Check app is running
-adb shell dumpsys activity | findstr edgedetection
-
-# View app logs
-adb logcat | findstr "EdgeDetection"
-```
-
-### Step 5: Build TypeScript Web Viewer
-
+### 5. Build Web Viewer (Optional)
 ```bash
 cd web
 npm install
 npm run build
-npm run serve
+
+# Serve the web viewer
+npx http-server -p 3000 --cors
 ```
 
-Open browser to `http://localhost:8080` to view the web interface.
-
-## 📱 Usage
-
-### Android App
-
-1. **First Launch:**
-   - Launch the app on your Android device
-   - Grant camera permission when prompted
-   - Wait for the camera to initialize (1-2 seconds)
-
-2. **Using the App:**
-   - The camera feed will display in real-time
-   - Tap the **"Toggle Mode"** button to switch between:
-     - **Raw Mode:** Live camera feed without processing
-     - **Edge Mode:** Real-time Canny edge detection overlay
-   - View the **FPS counter** at the bottom to monitor performance
-
-3. **Performance Tips:**
-   - For best results, use in well-lit environments
-   - Point camera at high-contrast scenes for better edge detection
-   - Close background apps to improve FPS
-   - Expected performance: 15-30 FPS depending on device capabilities
-
-4. **Troubleshooting:**
-   - **Black screen:** Check camera permissions in Settings → Apps → Edge Detection Viewer
-   - **Low FPS:** Close background apps, ensure good lighting
-   - **App crashes:** Check logcat for errors: `adb logcat | findstr EdgeDetection`
-
-### Web Viewer
-
-1. Open `http://localhost:8080` in a web browser
-2. Click **"Load Sample Frame"** to display a simulated edge-detected frame
-3. Click **"Toggle Stats"** to show/hide frame statistics
-4. Stats show: resolution, FPS (simulated), processing time, filter type
-
-## 🧪 Testing
-
-### Manual Testing Checklist
-
-- [ ] App launches without crashes
-- [ ] Camera permission is requested and granted
-- [ ] Camera feed displays correctly
-- [ ] Toggle button switches between raw and processed modes
-- [ ] Edge detection is visible and updates in real-time
-- [ ] FPS counter updates every second
-- [ ] App handles rotation gracefully
-- [ ] No memory leaks during extended usage
-
-### Performance Targets
-
-- **Target FPS:** 15-30 FPS
-- **Processing Time:** < 50ms per frame (720p)
-- **Memory Usage:** < 200 MB RAM
-
-## 🔧 Development
-
-### Project Structure
-
-```
-Real-Time-Edge-Detection-Viewer/
-├── app/                           # Android application
-│   ├── src/main/
-│   │   ├── java/com/example/edgedetectionviewer/
-│   │   │   ├── MainActivity.kt    # Main activity with Camera2
-│   │   │   ├── GLRenderer.kt      # OpenGL ES renderer
-│   │   │   └── NativeLib.kt       # JNI interface
-│   │   ├── cpp/                   # Native C++ code
-│   │   │   ├── native-lib.cpp     # JNI implementation
-│   │   │   ├── edge_processor.h   # Edge processor header
-│   │   │   ├── edge_processor.cpp # OpenCV processing
-│   │   │   └── CMakeLists.txt     # CMake build config
-│   │   ├── res/                   # Android resources
-│   │   └── AndroidManifest.xml
-│   └── build.gradle.kts           # App-level Gradle config
-├── web/                           # TypeScript web viewer
-│   ├── src/
-│   │   └── index.ts               # Main TypeScript code
-│   ├── index.html                 # Web UI
-│   ├── styles.css                 # Styling
-│   ├── tsconfig.json              # TypeScript config
-│   └── package.json               # Node dependencies
-├── build.gradle.kts               # Root Gradle config
-├── settings.gradle.kts            # Project settings
-├── .gitignore                     # Git ignore rules
-└── README.md                      # This file
-```
-
-### Adding New Features
-
-#### Add a New OpenCV Filter
-
-1. **Add method to `edge_processor.h`:**
-   ```cpp
-   bool applySobel(const cv::Mat& input, cv::Mat& output);
-   ```
-
-2. **Implement in `edge_processor.cpp`:**
-   ```cpp
-   bool EdgeProcessor::applySobel(const cv::Mat& input, cv::Mat& output) {
-       // Implementation here
-   }
-   ```
-
-3. **Expose via JNI in `native-lib.cpp`:**
-   ```cpp
-   JNIEXPORT jlong JNICALL
-   Java_com_example_edgedetectionviewer_NativeLib_applySobel(...) {
-       // JNI wrapper
-   }
-   ```
-
-4. **Add Kotlin declaration in `NativeLib.kt`:**
-   ```kotlin
-   external fun applySobel(width: Int, height: Int, data: ByteArray, outputData: ByteArray): Long
-   ```
-
-5. **Call from UI in `MainActivity.kt`**
-
-## 📦 Dependencies
-
-### Android
-- AndroidX Core KTX 1.12.0
-- AndroidX AppCompat 1.6.1
-- Material Components 1.11.0
-- Camera2 API 1.3.1
-- OpenCV Android SDK 4.5.0+
-
-### Native (C++)
-- OpenCV C++ 4.5.0+
-- Android NDK r21+
-- CMake 3.22.1+
-
-### Web (TypeScript)
-- TypeScript 5.3.0
-- Modern web browsers with Canvas API support
-
-## 🚀 Git Workflow & Commit Strategy
-
-### Recommended Commit Granularity for Evaluation
-
-To demonstrate proper version control practices, structure your commits like this:
-
-```bash
-# Initial setup
-git add .gitignore README.md
-git commit -m "chore: Add .gitignore and README"
-
-# Android scaffolding
-git add build.gradle.kts settings.gradle.kts gradle.properties
-git commit -m "build: Setup Gradle build configuration"
-
-git add app/build.gradle.kts app/proguard-rules.pro
-git commit -m "build: Configure Android app module with NDK support"
-
-git add app/src/main/AndroidManifest.xml
-git commit -m "feat: Add AndroidManifest with camera permissions"
-
-# Android resources
-git add app/src/main/res/
-git commit -m "feat: Add Android resources (layouts, strings, themes)"
-
-# Kotlin implementation
-git add app/src/main/java/com/example/edgedetectionviewer/MainActivity.kt
-git commit -m "feat: Implement MainActivity with Camera2 API integration"
-
-git add app/src/main/java/com/example/edgedetectionviewer/GLRenderer.kt
-git commit -m "feat: Implement OpenGL ES 2.0 renderer for camera frames"
-
-git add app/src/main/java/com/example/edgedetectionviewer/NativeLib.kt
-git commit -m "feat: Add JNI interface for native processing"
-
-# Native C++ implementation
-git add app/src/main/cpp/CMakeLists.txt
-git commit -m "build: Add CMake configuration for native library"
-
-git add app/src/main/cpp/edge_processor.h app/src/main/cpp/edge_processor.cpp
-git commit -m "feat: Implement EdgeProcessor with OpenCV Canny detection"
-
-git add app/src/main/cpp/native-lib.cpp
-git commit -m "feat: Implement JNI bridge for OpenCV processing"
-
-# Web viewer
-git add web/package.json web/tsconfig.json
-git commit -m "build: Setup TypeScript web viewer project"
-
-git add web/index.html web/styles.css
-git commit -m "feat: Add web viewer UI with responsive design"
-
-git add web/src/index.ts
-git commit -m "feat: Implement TypeScript viewer with Canvas rendering"
-
-# Documentation
-git add README.md
-git commit -m "docs: Complete README with setup and architecture docs"
-```
-
-### Push to Remote
-
-```bash
-git remote add origin https://github.com/Sameerbeedi/Real-Time-Edge-Detection-Viewer.git
-git branch -M master
-git push -u origin master
-```
-
-### Best Practices
-
-- ✅ Use conventional commit messages (`feat:`, `fix:`, `docs:`, `build:`, `chore:`)
-- ✅ Commit frequently with focused changes
-- ✅ Test before committing
-- ✅ Write descriptive commit messages
-- ❌ Don't commit build artifacts (`build/`, `*.apk`, `node_modules/`)
-- ❌ Don't commit OpenCV SDK (too large - download separately)
-- ❌ Don't use a single "final commit" for everything
-
-## 🎯 Technical Assessment Criteria Coverage
-
-| Criteria | Implementation | Weight |
-|----------|---------------|--------|
-| **Native C Integration (JNI)** | ✅ Full JNI bridge with type-safe interfaces | 25% |
-| **OpenCV Processing** | ✅ Canny edge detection in C++, grayscale filter | 20% |
-| **OpenGL ES Rendering** | ✅ ES 2.0 with shaders, texture rendering | 20% |
-| **Camera Integration** | ✅ Camera2 API with SurfaceTexture | 15% |
-| **TypeScript Web Viewer** | ✅ Canvas rendering, stats overlay, modular code | 10% |
-| **Architecture & Code Quality** | ✅ Modular, clean separation of concerns | 10% |
-
-## 🔮 Future Enhancements
-
-- [ ] Add WebSocket server for real-time frame streaming to web viewer
-- [ ] Implement additional OpenCV filters (Sobel, Gaussian blur, etc.)
-- [ ] Add GLSL shader effects (invert, sepia, etc.)
-- [ ] Save processed frames to gallery
-- [ ] Performance profiling and optimization
-- [ ] Unit and integration tests
-- [ ] CI/CD pipeline with GitHub Actions
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) file for details
-
-## 👤 Author
-
-**Sameer Beedi**
-- GitHub: [@Sameerbeedi](https://github.com/Sameerbeedi)
-- Repository: [Real-Time-Edge-Detection-Viewer](https://github.com/Sameerbeedi/Real-Time-Edge-Detection-Viewer)
-
-## 🙏 Acknowledgments
-
-- OpenCV Team for the excellent computer vision library
-- Android team for Camera2 and OpenGL ES APIs
-- TypeScript community for type-safe web development
+Open browser: `http://localhost:3000`
 
 ---
 
-**Note:** This project was created as a technical assessment demonstrating Android development, OpenCV C++, OpenGL ES, JNI/NDK, and TypeScript integration skills.
+## 🏗️ Architecture Explanation
+
+### System Overview
+```
+┌──────────────────────────────────────────────────────────┐
+│                   ANDROID APPLICATION                     │
+├──────────────────────────────────────────────────────────┤
+│                                                            │
+│  ┌───────────┐      ┌──────────┐      ┌─────────────┐   │
+│  │MainActivity├──────►GLRenderer├──────►OpenGL Shaders│   │
+│  │  (Kotlin) │      │ (Kotlin) │      │   (GLSL)    │   │
+│  └─────┬─────┘      └────┬─────┘      └─────────────┘   │
+│        │                  │                               │
+│    Camera2 API       SurfaceTexture                       │
+│        │                  │                               │
+│  ┌─────▼──────────────────▼──────┐                       │
+│  │   JNI Bridge (native-lib.cpp)  │                       │
+│  └─────────────┬───────────────────┘                      │
+├────────────────┼──────────────────────────────────────────┤
+│      C++ / NDK │                                          │
+├────────────────┼──────────────────────────────────────────┤
+│  ┌─────────────▼──────────────┐                           │
+│  │  EdgeProcessor (C++)        │                           │
+│  │  - Canny Edge Detection     │                           │
+│  │  - Grayscale Conversion     │                           │
+│  └─────────────┬───────────────┘                           │
+│  ┌─────────────▼───────────────┐                           │
+│  │   OpenCV 4.10.0 (C++)       │                           │
+│  └─────────────────────────────┘                           │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│              WEB VIEWER (TypeScript)                      │
+├──────────────────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────────────────┐  │
+│  │  EdgeDetectionViewer (TypeScript)                   │  │
+│  │  - Canvas Rendering                                 │  │
+│  │  - Stats Overlay                                    │  │
+│  │  - HTTP Client (fetch API)                          │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+#### 1. **Camera Capture (Java/Kotlin Layer)**
+- `MainActivity.kt` uses **Camera2 API** to capture frames
+- Frames written to **SurfaceTexture** (external OES texture)
+- Resolution: 1280x720 (16:9)
+
+#### 2. **OpenGL Rendering (Kotlin + GLSL)**
+- `GLRenderer.kt` implements `GLSurfaceView.Renderer`
+- **5 shader effects**: Normal, Grayscale, Invert, Sepia, Edge Enhance
+- Renders texture to screen at 9+ FPS
+- Aspect ratio correction prevents image distortion
+
+#### 3. **JNI Bridge (C++)**
+When Edge Detection mode enabled:
+- `native-lib.cpp` receives frame data from Kotlin
+- Marshals data to/from Java byte arrays
+- Calls `EdgeProcessor` methods
+
+#### 4. **OpenCV Processing (C++)**
+- `EdgeProcessor::processCannyEdge()` pipeline:
+  1. RGBA → Grayscale conversion
+  2. Gaussian blur (5x5, sigma=1.5)
+  3. Canny edge detection (thresholds: 50/150)
+  4. Grayscale → RGBA for display
+- Returns processed frame to JNI layer
+
+#### 5. **TypeScript Web Viewer**
+- Canvas-based rendering
+- Fetches frames via HTTP (`/latest-frame`)
+- Displays stats overlay (FPS, resolution, timestamp)
+- Fully type-safe with TypeScript
+
+### Frame Processing Pipeline
+```
+Camera → SurfaceTexture → OpenGL Texture
+                              ↓
+                   [Toggle: Raw / Edge Detection]
+                              ↓
+                    ┌─────────┴─────────┐
+                    │                    │
+                Raw Mode          Edge Detection
+                    │                    │
+                 Display      JNI → C++ → OpenCV
+                              (Canny + Grayscale)
+                                         │
+                                   Display Edges
+```
+
+---
+
+## 📝 Quick Explanation
+
+### JNI Integration
+- **Purpose**: Bridge between Kotlin (Android) and C++ (OpenCV)
+- **File**: `native-lib.cpp`
+- **Method**: `processCannyEdgeDetection()`
+  - Receives: width, height, RGBA byte array
+  - Returns: processed frame as byte array + processing time
+
+### Frame Flow
+1. **Camera** captures 1280x720 frames → `SurfaceTexture`
+2. **GLRenderer** reads texture, renders with shader effects
+3. On **Edge Detection** toggle:
+   - Extract pixel data from OpenGL texture
+   - Send to native C++ via JNI
+   - `EdgeProcessor` applies Canny edge detection using OpenCV
+   - Return processed frame to OpenGL for display
+
+### TypeScript Part
+- **Standalone web viewer** for displaying processed frames
+- **Canvas API** for rendering
+- **Fetch API** to get frames from HTTP server (`/latest-frame`)
+- **Stats panel** shows: FPS, resolution, processing time, filter type
+- Demonstrates clean TypeScript architecture with type safety
+
+---
+
+## 📦 Dependencies
+
+### Android & Native
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| AndroidX Core KTX | 1.12.0 | Kotlin extensions |
+| Camera2 API | Built-in | Camera capture |
+| OpenGL ES | 2.0 | GPU rendering |
+| OpenCV Android SDK | 4.10.0 | Edge detection (C++) |
+| Android NDK | r21+ | Native code compilation |
+
+### Web
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| TypeScript | 5.x | Type-safe development |
+| Canvas API | Browser | Frame rendering |
+
+
