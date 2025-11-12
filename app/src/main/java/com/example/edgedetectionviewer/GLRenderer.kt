@@ -11,11 +11,20 @@ import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
+enum class ShaderEffect {
+    NORMAL,      // No effect
+    GRAYSCALE,   // Grayscale filter
+    INVERT,      // Color inversion
+    SEPIA,       // Sepia tone
+    EDGE_ENHANCE // Edge enhancement
+}
+
 class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
     
     private var surfaceTexture: SurfaceTexture? = null
     private var textureId = 0
-    private var programId = 0
+    private val programs = mutableMapOf<ShaderEffect, Int>()
+    private var currentEffect = ShaderEffect.NORMAL
     private var vertexBuffer: FloatBuffer
     private var textureBuffer: FloatBuffer
     
@@ -36,7 +45,8 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         }
     """.trimIndent()
     
-    private val fragmentShaderCode = """
+    // Normal shader - no effects
+    private val fragmentShaderNormal = """
         #extension GL_OES_EGL_image_external : require
         precision mediump float;
         varying vec2 vTexCoord;
@@ -44,6 +54,74 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         
         void main() {
             gl_FragColor = texture2D(uTexture, vTexCoord);
+        }
+    """.trimIndent()
+    
+    // Grayscale shader
+    private val fragmentShaderGrayscale = """
+        #extension GL_OES_EGL_image_external : require
+        precision mediump float;
+        varying vec2 vTexCoord;
+        uniform samplerExternalOES uTexture;
+        
+        void main() {
+            vec4 color = texture2D(uTexture, vTexCoord);
+            float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+            gl_FragColor = vec4(gray, gray, gray, color.a);
+        }
+    """.trimIndent()
+    
+    // Invert shader
+    private val fragmentShaderInvert = """
+        #extension GL_OES_EGL_image_external : require
+        precision mediump float;
+        varying vec2 vTexCoord;
+        uniform samplerExternalOES uTexture;
+        
+        void main() {
+            vec4 color = texture2D(uTexture, vTexCoord);
+            gl_FragColor = vec4(1.0 - color.rgb, color.a);
+        }
+    """.trimIndent()
+    
+    // Sepia shader
+    private val fragmentShaderSepia = """
+        #extension GL_OES_EGL_image_external : require
+        precision mediump float;
+        varying vec2 vTexCoord;
+        uniform samplerExternalOES uTexture;
+        
+        void main() {
+            vec4 color = texture2D(uTexture, vTexCoord);
+            float r = dot(color.rgb, vec3(0.393, 0.769, 0.189));
+            float g = dot(color.rgb, vec3(0.349, 0.686, 0.168));
+            float b = dot(color.rgb, vec3(0.272, 0.534, 0.131));
+            gl_FragColor = vec4(r, g, b, color.a);
+        }
+    """.trimIndent()
+    
+    // Edge enhance shader
+    private val fragmentShaderEdgeEnhance = """
+        #extension GL_OES_EGL_image_external : require
+        precision mediump float;
+        varying vec2 vTexCoord;
+        uniform samplerExternalOES uTexture;
+        
+        void main() {
+            vec2 texelSize = vec2(1.0 / 1280.0, 1.0 / 720.0);
+            
+            // Sobel kernel for edge detection
+            vec4 center = texture2D(uTexture, vTexCoord);
+            vec4 left = texture2D(uTexture, vTexCoord - vec2(texelSize.x, 0.0));
+            vec4 right = texture2D(uTexture, vTexCoord + vec2(texelSize.x, 0.0));
+            vec4 up = texture2D(uTexture, vTexCoord - vec2(0.0, texelSize.y));
+            vec4 down = texture2D(uTexture, vTexCoord + vec2(0.0, texelSize.y));
+            
+            vec4 edgeX = (right - left) * 2.0;
+            vec4 edgeY = (down - up) * 2.0;
+            vec4 edge = sqrt(edgeX * edgeX + edgeY * edgeY);
+            
+            gl_FragColor = center + edge * 0.5;
         }
     """.trimIndent()
     
@@ -103,16 +181,31 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
             // Frame is available
         }
         
-        // Compile shaders and create program
+        // Compile all shader programs
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
+        
+        // Create programs for each effect
+        programs[ShaderEffect.NORMAL] = createProgram(vertexShader, fragmentShaderNormal)
+        programs[ShaderEffect.GRAYSCALE] = createProgram(vertexShader, fragmentShaderGrayscale)
+        programs[ShaderEffect.INVERT] = createProgram(vertexShader, fragmentShaderInvert)
+        programs[ShaderEffect.SEPIA] = createProgram(vertexShader, fragmentShaderSepia)
+        programs[ShaderEffect.EDGE_ENHANCE] = createProgram(vertexShader, fragmentShaderEdgeEnhance)
+        
+        // Get handles for current program
+        updateHandles()
+    }
+    
+    private fun createProgram(vertexShader: Int, fragmentShaderCode: String): Int {
         val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode)
-        
-        programId = GLES20.glCreateProgram()
-        GLES20.glAttachShader(programId, vertexShader)
-        GLES20.glAttachShader(programId, fragmentShader)
-        GLES20.glLinkProgram(programId)
-        
-        // Get handles
+        val program = GLES20.glCreateProgram()
+        GLES20.glAttachShader(program, vertexShader)
+        GLES20.glAttachShader(program, fragmentShader)
+        GLES20.glLinkProgram(program)
+        return program
+    }
+    
+    private fun updateHandles() {
+        val programId = programs[currentEffect] ?: return
         positionHandle = GLES20.glGetAttribLocation(programId, "aPosition")
         textureCoordHandle = GLES20.glGetAttribLocation(programId, "aTexCoord")
         textureSamplerHandle = GLES20.glGetUniformLocation(programId, "uTexture")
@@ -128,6 +221,7 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         
         surfaceTexture?.updateTexImage()
         
+        val programId = programs[currentEffect] ?: return
         GLES20.glUseProgram(programId)
         
         // Set vertex positions
@@ -153,6 +247,13 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         GLES20.glDisableVertexAttribArray(positionHandle)
         GLES20.glDisableVertexAttribArray(textureCoordHandle)
     }
+    
+    fun setShaderEffect(effect: ShaderEffect) {
+        currentEffect = effect
+        updateHandles()
+    }
+    
+    fun getShaderEffect(): ShaderEffect = currentEffect
     
     private fun loadShader(type: Int, shaderCode: String): Int {
         val shader = GLES20.glCreateShader(type)
