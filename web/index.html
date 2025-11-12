@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge Detection Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Edge Detection Viewer</h1>
+            <p class="subtitle">Real-time OpenCV Processing Results</p>
+        </header>
+
+        <main>
+            <div class="viewer-section">
+                <div class="image-container">
+                    <canvas id="imageCanvas"></canvas>
+                    <div id="loadingIndicator" class="loading">Loading frame...</div>
+                </div>
+
+                <div class="controls">
+                    <button id="loadSampleBtn" class="btn btn-primary">Load Sample Frame</button>
+                    <button id="toggleOverlayBtn" class="btn btn-secondary">Toggle Stats</button>
+                </div>
+            </div>
+
+            <aside class="stats-panel" id="statsPanel">
+                <h3>Frame Statistics</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Resolution:</span>
+                    <span class="stat-value" id="resolution">N/A</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">FPS (Simulated):</span>
+                    <span class="stat-value" id="fps">30</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Processing Time:</span>
+                    <span class="stat-value" id="processingTime">N/A</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Filter:</span>
+                    <span class="stat-value" id="filterType">Canny Edge Detection</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Last Updated:</span>
+                    <span class="stat-value" id="timestamp">N/A</span>
+                </div>
+            </aside>
+
+            <section class="info-section">
+                <h3>📱 About This Viewer</h3>
+                <p>
+                    This TypeScript-based web viewer demonstrates the display of processed frames
+                    from the Android Edge Detection application. In production, this could receive
+                    frames via WebSocket, HTTP polling, or direct file upload.
+                </p>
+                <ul>
+                    <li>✅ Built with TypeScript for type safety</li>
+                    <li>✅ Canvas-based rendering for optimal performance</li>
+                    <li>✅ Responsive design for various screen sizes</li>
+                    <li>✅ Real-time stats overlay (simulated)</li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>Edge Detection Viewer | Built with TypeScript, Canvas API, and modern web standards</p>
+        </footer>
+    </div>
+
+    <script type="module" src="dist/index.js"></script>
+</body>
+</html>
