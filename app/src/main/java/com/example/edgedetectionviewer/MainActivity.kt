@@ -23,11 +23,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fpsTextView: TextView
     private lateinit var modeTextView: TextView
     private lateinit var toggleButton: Button
+    private lateinit var shaderButton: Button
     
     private var cameraDevice: CameraDevice? = null
     private var cameraCaptureSession: CameraCaptureSession? = null
     private var backgroundThread: HandlerThread? = null
     private var backgroundHandler: Handler? = null
+    private var httpServer: HttpServer? = null
     
     private var isProcessingEnabled = false
     private var frameCount = 0
@@ -49,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         fpsTextView = findViewById(R.id.fpsTextView)
         modeTextView = findViewById(R.id.modeTextView)
         toggleButton = findViewById(R.id.toggleButton)
+        shaderButton = findViewById(R.id.shaderButton)
         
         // Initialize OpenGL ES 2.0
         glSurfaceView.setEGLContextClientVersion(2)
@@ -63,6 +66,15 @@ class MainActivity : AppCompatActivity() {
             else 
                 getString(R.string.raw_mode)
         }
+        
+        shaderButton.setOnClickListener {
+            cycleShaderEffect()
+        }
+        
+        // Start HTTP server for web viewer
+        httpServer = HttpServer(8080)
+        httpServer?.start()
+        Toast.makeText(this, "HTTP Server started on port 8080", Toast.LENGTH_LONG).show()
         
         // Request camera permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) 
@@ -218,6 +230,25 @@ class MainActivity : AppCompatActivity() {
         })
     }
     
+    private fun cycleShaderEffect() {
+        val effects = ShaderEffect.values()
+        val currentIndex = effects.indexOf(renderer.getShaderEffect())
+        val nextIndex = (currentIndex + 1) % effects.size
+        val nextEffect = effects[nextIndex]
+        
+        renderer.setShaderEffect(nextEffect)
+        
+        // Update button text to show current shader
+        val effectName = when(nextEffect) {
+            ShaderEffect.NORMAL -> "Normal"
+            ShaderEffect.GRAYSCALE -> "Grayscale"
+            ShaderEffect.INVERT -> "Invert"
+            ShaderEffect.SEPIA -> "Sepia"
+            ShaderEffect.EDGE_ENHANCE -> "Edge Enhance"
+        }
+        shaderButton.text = "Shader: $effectName"
+    }
+    
     fun isProcessingEnabled(): Boolean = isProcessingEnabled
     
     override fun onResume() {
@@ -233,5 +264,6 @@ class MainActivity : AppCompatActivity() {
         cameraDevice?.close()
         cameraDevice = null
         stopBackgroundThread()
+        httpServer?.stop()
     }
 }
