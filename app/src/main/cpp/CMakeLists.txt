@@ -6,10 +6,10 @@ project("native-lib")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# OpenCV setup
-set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/opencv)
+# OpenCV setup - point to the correct native/jni directory
+set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/opencv/sdk/native/jni)
 
-# Find OpenCV (you need to download OpenCV Android SDK and place it in src/main/cpp/opencv)
+# Find OpenCV
 find_package(OpenCV REQUIRED)
 
 # Add native library
