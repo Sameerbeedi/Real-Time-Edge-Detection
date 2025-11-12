@@ -116,6 +116,53 @@ main {
     background: #e0e0e0;
 }
 
+.btn-success {
+    background: #48bb78;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #38a169;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: #f56565;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #e53e3e;
+    transform: translateY(-2px);
+}
+
+.server-config {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f0f4f8;
+    border-radius: 6px;
+}
+
+.server-config label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.server-config input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #cbd5e0;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.server-config input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
 .stats-panel {
     background: #f8f9fa;
     border-radius: 8px;

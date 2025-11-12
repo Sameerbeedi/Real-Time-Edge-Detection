@@ -52,11 +52,97 @@ class EdgeDetectionViewer {
     private setupEventListeners(): void {
         const loadSampleBtn = document.getElementById('loadSampleBtn');
         const toggleOverlayBtn = document.getElementById('toggleOverlayBtn');
+        const connectServerBtn = document.getElementById('connectServerBtn');
+        const startPollingBtn = document.getElementById('startPollingBtn');
+        const stopPollingBtn = document.getElementById('stopPollingBtn');
+        const serverUrlInput = document.getElementById('serverUrl') as HTMLInputElement;
         
         loadSampleBtn?.addEventListener('click', () => this.loadSampleFrame());
         toggleOverlayBtn?.addEventListener('click', () => this.toggleStatsPanel());
+        
+        connectServerBtn?.addEventListener('click', () => {
+            const serverUrl = serverUrlInput?.value || 'http://192.168.1.16:8080';
+            this.loadFrameFromServer(serverUrl);
+        });
+        
+        startPollingBtn?.addEventListener('click', () => {
+            const serverUrl = serverUrlInput?.value || 'http://192.168.1.16:8080';
+            this.startLivePolling(serverUrl, 100); // Poll every 100ms (10fps)
+            startPollingBtn.style.display = 'none';
+            stopPollingBtn!.style.display = 'inline-block';
+        });
+        
+        stopPollingBtn?.addEventListener('click', () => {
+            this.stopLivePolling();
+            stopPollingBtn.style.display = 'none';
+            startPollingBtn!.style.display = 'inline-block';
+        });
     }
 
+    /**
+     * Load frame from Android HTTP server
+     */
+    async loadFrameFromServer(serverUrl: string = 'http://192.168.1.16:8080'): Promise<void> {
+        this.showLoading(true);
+        
+        try {
+            const response = await fetch(`${serverUrl}/latest-frame`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const frameData: FrameData = await response.json();
+            
+            this.currentFrame = frameData;
+            this.displayFrame(frameData);
+            this.updateStats(frameData);
+            this.showLoading(false);
+            
+            console.log('Frame loaded from server', frameData);
+        } catch (error) {
+            console.error('Error loading frame from server:', error);
+            this.showLoading(false);
+            alert(`Failed to load frame from server: ${error}\n\nMake sure:\n1. Android app is running\n2. HTTP server is started\n3. Both devices are on same WiFi\n4. Server URL is correct: ${serverUrl}`);
+        }
+    }
+    
+    /**
+     * Start polling frames from server
+     */
+    startLivePolling(serverUrl: string = 'http://192.168.1.16:8080', intervalMs: number = 100): void {
+        console.log(`Starting live polling from ${serverUrl} every ${intervalMs}ms`);
+        
+        const pollInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`${serverUrl}/latest-frame`);
+                if (response.ok) {
+                    const frameData: FrameData = await response.json();
+                    this.currentFrame = frameData;
+                    this.displayFrame(frameData);
+                    this.updateStats(frameData);
+                }
+            } catch (error) {
+                console.error('Polling error:', error);
+            }
+        }, intervalMs);
+        
+        // Store interval ID for cleanup
+        (window as any).pollingInterval = pollInterval;
+    }
+    
+    /**
+     * Stop polling frames
+     */
+    stopLivePolling(): void {
+        const interval = (window as any).pollingInterval;
+        if (interval) {
+            clearInterval(interval);
+            (window as any).pollingInterval = null;
+            console.log('Live polling stopped');
+        }
+    }
+    
     /**
      * Load a sample processed frame (simulated edge detection result)
      */

@@ -22,7 +22,15 @@
 
                 <div class="controls">
                     <button id="loadSampleBtn" class="btn btn-primary">Load Sample Frame</button>
+                    <button id="connectServerBtn" class="btn btn-success">Connect to Android</button>
+                    <button id="startPollingBtn" class="btn btn-success">Start Live Feed</button>
+                    <button id="stopPollingBtn" class="btn btn-danger" style="display:none;">Stop Live Feed</button>
                     <button id="toggleOverlayBtn" class="btn btn-secondary">Toggle Stats</button>
+                </div>
+                
+                <div class="server-config">
+                    <label for="serverUrl">Android Server URL:</label>
+                    <input type="text" id="serverUrl" value="http://192.168.1.16:8080" placeholder="http://192.168.x.x:8080">
                 </div>
             </div>
 
