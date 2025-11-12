@@ -24,18 +24,24 @@ bool EdgeProcessor::processCannyEdge(const cv::Mat& input, cv::Mat& output) {
             return false;
         }
         
+        LOGI("EdgeProcessor: Processing frame with Canny edge detection - size: %dx%d", input.cols, input.rows);
+        
         // Convert RGBA to grayscale
         cv::cvtColor(input, tempGray, cv::COLOR_RGBA2GRAY);
+        LOGI("EdgeProcessor: Converted to grayscale");
         
         // Apply Gaussian blur to reduce noise
         cv::GaussianBlur(tempGray, tempBlurred, cv::Size(5, 5), 1.5);
+        LOGI("EdgeProcessor: Applied Gaussian blur");
         
         // Apply Canny edge detection
         cv::Canny(tempBlurred, tempEdges, lowThreshold, highThreshold, kernelSize);
+        LOGI("EdgeProcessor: Applied Canny edge detection (low=%f, high=%f)", lowThreshold, highThreshold);
         
         // Convert edges back to RGBA for display
         // White edges on black background
         cv::cvtColor(tempEdges, output, cv::COLOR_GRAY2RGBA);
+        LOGI("EdgeProcessor: Converted back to RGBA - output size: %dx%d", output.cols, output.rows);
         
         return true;
     } catch (const cv::Exception& e) {

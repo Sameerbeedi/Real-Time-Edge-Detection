@@ -208,11 +208,17 @@ class GLRenderer(private val context: Context, private val glSurfaceView: GLSurf
     }
     
     private fun updateHandles() {
-        val programId = programs[currentEffect] ?: return
+        val programId = programs[currentEffect]
+        if (programId == null) {
+            android.util.Log.e("EdgeDetection", "GLRenderer: updateHandles - program is null for effect $currentEffect")
+            return
+        }
+        android.util.Log.d("EdgeDetection", "GLRenderer: updateHandles - using program $programId for effect $currentEffect")
         positionHandle = GLES20.glGetAttribLocation(programId, "aPosition")
         textureCoordHandle = GLES20.glGetAttribLocation(programId, "aTexCoord")
         textureSamplerHandle = GLES20.glGetUniformLocation(programId, "uTexture")
         mvpMatrixHandle = GLES20.glGetUniformLocation(programId, "uMVPMatrix")
+        android.util.Log.d("EdgeDetection", "GLRenderer: Handles updated - position=$positionHandle, texCoord=$textureCoordHandle, sampler=$textureSamplerHandle, mvp=$mvpMatrixHandle")
     }
     
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -222,30 +228,61 @@ class GLRenderer(private val context: Context, private val glSurfaceView: GLSurf
     override fun onDrawFrame(gl: GL10?) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         
-        surfaceTexture?.updateTexImage()
+        try {
+            surfaceTexture?.updateTexImage()
+            checkGLError("updateTexImage")
+        } catch (e: Exception) {
+            android.util.Log.e("EdgeDetection", "GLRenderer: updateTexImage failed: ${e.message}")
+            return
+        }
+        
+        // Check if we should process the frame with edge detection
+        val mainActivity = context as? MainActivity
+        val shouldProcess = mainActivity?.isProcessingEnabled() ?: false
+        
+        if (shouldProcess) {
+            android.util.Log.d("EdgeDetection", "GLRenderer: Processing mode ENABLED - applying Canny edge detection")
+            // TODO: Apply edge detection processing here
+            // This would involve reading the texture, processing with OpenCV, and uploading back
+        } else {
+            android.util.Log.v("EdgeDetection", "GLRenderer: Raw mode - no processing")
+        }
         
         val programId = programs[currentEffect]
         if (programId == null) {
             android.util.Log.e("EdgeDetection", "GLRenderer: Program is null for effect $currentEffect")
             return
         }
+        
         GLES20.glUseProgram(programId)
+        checkGLError("glUseProgram")
+        
+        // Update handles for the current program (MUST be after glUseProgram)
+        positionHandle = GLES20.glGetAttribLocation(programId, "aPosition")
+        textureCoordHandle = GLES20.glGetAttribLocation(programId, "aTexCoord")
+        textureSamplerHandle = GLES20.glGetUniformLocation(programId, "uTexture")
+        mvpMatrixHandle = GLES20.glGetUniformLocation(programId, "uMVPMatrix")
         
         // Set vertex positions
         GLES20.glEnableVertexAttribArray(positionHandle)
         GLES20.glVertexAttribPointer(positionHandle, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer)
+        checkGLError("vertex positions")
         
         // Set texture coordinates
         GLES20.glEnableVertexAttribArray(textureCoordHandle)
         GLES20.glVertexAttribPointer(textureCoordHandle, 2, GLES20.GL_FLOAT, false, 0, textureBuffer)
+        checkGLError("texture coordinates")
         
         // Set texture sampler
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId)
+        checkGLError("bind texture")
         GLES20.glUniform1i(textureSamplerHandle, 0)
+        checkGLError("texture sampler")
         
         // Set MVP matrix
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0)
+        checkGLError("MVP matrix")
         
         // Draw
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
@@ -256,8 +293,9 @@ class GLRenderer(private val context: Context, private val glSurfaceView: GLSurf
     }
     
     fun setShaderEffect(effect: ShaderEffect) {
+        android.util.Log.d("EdgeDetection", "GLRenderer: Changing shader effect from $currentEffect to $effect")
         currentEffect = effect
-        updateHandles()
+        android.util.Log.d("EdgeDetection", "GLRenderer: Shader effect changed to $effect")
     }
     
     fun getShaderEffect(): ShaderEffect = currentEffect
@@ -267,6 +305,13 @@ class GLRenderer(private val context: Context, private val glSurfaceView: GLSurf
         GLES20.glShaderSource(shader, shaderCode)
         GLES20.glCompileShader(shader)
         return shader
+    }
+    
+    private fun checkGLError(operation: String) {
+        val error = GLES20.glGetError()
+        if (error != GLES20.GL_NO_ERROR) {
+            android.util.Log.e("EdgeDetection", "GLRenderer: GL Error after $operation: $error (0x${error.toString(16)})")
+        }
     }
     
     fun getSurfaceTexture(): SurfaceTexture? {

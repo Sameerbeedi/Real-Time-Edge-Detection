@@ -61,10 +61,13 @@ class MainActivity : AppCompatActivity() {
         
         toggleButton.setOnClickListener {
             isProcessingEnabled = !isProcessingEnabled
+            val newMode = if (isProcessingEnabled) "Processed Mode (Edge Detection)" else "Raw Mode"
+            android.util.Log.d("EdgeDetection", "MainActivity: Toggle clicked - switching to $newMode")
             modeTextView.text = if (isProcessingEnabled) 
                 getString(R.string.processed_mode) 
             else 
                 getString(R.string.raw_mode)
+            android.util.Log.d("EdgeDetection", "MainActivity: isProcessingEnabled = $isProcessingEnabled")
         }
         
         shaderButton.setOnClickListener {
