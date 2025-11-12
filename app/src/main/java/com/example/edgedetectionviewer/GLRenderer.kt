@@ -19,7 +19,7 @@ enum class ShaderEffect {
     EDGE_ENHANCE // Edge enhancement
 }
 
-class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
+class GLRenderer(private val context: Context, private val glSurfaceView: GLSurfaceView) : GLSurfaceView.Renderer {
     
     private var surfaceTexture: SurfaceTexture? = null
     private var textureId = 0
@@ -163,6 +163,7 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
     }
     
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+        android.util.Log.d("EdgeDetection", "GLRenderer: onSurfaceCreated")
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         
         // Create texture for camera
@@ -178,8 +179,10 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         
         surfaceTexture = SurfaceTexture(textureId)
         surfaceTexture?.setOnFrameAvailableListener {
-            // Frame is available
+            // Request render when new frame is available (for RENDERMODE_WHEN_DIRTY)
+            glSurfaceView.requestRender()
         }
+        android.util.Log.d("EdgeDetection", "GLRenderer: SurfaceTexture created with textureId=$textureId")
         
         // Compile all shader programs
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
@@ -221,7 +224,11 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         
         surfaceTexture?.updateTexImage()
         
-        val programId = programs[currentEffect] ?: return
+        val programId = programs[currentEffect]
+        if (programId == null) {
+            android.util.Log.e("EdgeDetection", "GLRenderer: Program is null for effect $currentEffect")
+            return
+        }
         GLES20.glUseProgram(programId)
         
         // Set vertex positions
@@ -262,5 +269,8 @@ class GLRenderer(private val context: Context) : GLSurfaceView.Renderer {
         return shader
     }
     
-    fun getSurfaceTexture(): SurfaceTexture? = surfaceTexture
+    fun getSurfaceTexture(): SurfaceTexture? {
+        android.util.Log.d("EdgeDetection", "GLRenderer: getSurfaceTexture called, texture=${if (surfaceTexture != null) "available" else "null"}")
+        return surfaceTexture
+    }
 }

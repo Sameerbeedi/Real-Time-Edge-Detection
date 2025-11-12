@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         
         // Initialize OpenGL ES 2.0
         glSurfaceView.setEGLContextClientVersion(2)
-        renderer = GLRenderer(this)
+        renderer = GLRenderer(this, glSurfaceView)
         glSurfaceView.setRenderer(renderer)
         glSurfaceView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         
@@ -114,6 +114,7 @@ class MainActivity : AppCompatActivity() {
         val cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
         try {
             val cameraId = cameraManager.cameraIdList[0]
+            android.util.Log.d("EdgeDetection", "Starting camera with ID: $cameraId")
             
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) 
                 != PackageManager.PERMISSION_GRANTED) {
@@ -122,16 +123,19 @@ class MainActivity : AppCompatActivity() {
             
             cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
                 override fun onOpened(camera: CameraDevice) {
+                    android.util.Log.d("EdgeDetection", "Camera opened successfully")
                     cameraDevice = camera
                     createCameraPreviewSession()
                 }
                 
                 override fun onDisconnected(camera: CameraDevice) {
+                    android.util.Log.w("EdgeDetection", "Camera disconnected")
                     camera.close()
                     cameraDevice = null
                 }
                 
                 override fun onError(camera: CameraDevice, error: Int) {
+                    android.util.Log.e("EdgeDetection", "Camera error: $error")
                     camera.close()
                     cameraDevice = null
                     runOnUiThread {
@@ -146,10 +150,19 @@ class MainActivity : AppCompatActivity() {
     
     private fun createCameraPreviewSession() {
         try {
-            val surfaceTexture = renderer.getSurfaceTexture() ?: return
+            val surfaceTexture = renderer.getSurfaceTexture()
+            if (surfaceTexture == null) {
+                android.util.Log.e("EdgeDetection", "SurfaceTexture is null! Retrying in 100ms...")
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    createCameraPreviewSession()
+                }, 100)
+                return
+            }
+            android.util.Log.d("EdgeDetection", "SurfaceTexture obtained, setting buffer size")
             surfaceTexture.setDefaultBufferSize(1280, 720)
             
             val surface = Surface(surfaceTexture)
+            android.util.Log.d("EdgeDetection", "Surface created, creating capture session")
             
             val captureRequestBuilder = cameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
             captureRequestBuilder?.addTarget(surface)
@@ -158,8 +171,11 @@ class MainActivity : AppCompatActivity() {
                 listOf(surface),
                 object : CameraCaptureSession.StateCallback() {
                     override fun onConfigured(session: CameraCaptureSession) {
-                        if (cameraDevice == null) return
-                        
+                        if (cameraDevice == null) {
+                            android.util.Log.w("EdgeDetection", "Camera device is null in onConfigured")
+                            return
+                        }
+                        android.util.Log.d("EdgeDetection", "Capture session configured successfully")
                         cameraCaptureSession = session
                         
                         captureRequestBuilder?.set(
@@ -178,9 +194,11 @@ class MainActivity : AppCompatActivity() {
                             null,
                             backgroundHandler
                         )
+                        android.util.Log.d("EdgeDetection", "Camera preview started successfully!")
                     }
                     
                     override fun onConfigureFailed(session: CameraCaptureSession) {
+                        android.util.Log.e("EdgeDetection", "Camera capture session configuration failed!")
                         runOnUiThread {
                             Toast.makeText(this@MainActivity, "Camera configuration failed", Toast.LENGTH_SHORT).show()
                         }
