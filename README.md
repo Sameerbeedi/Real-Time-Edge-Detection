@@ -56,7 +56,74 @@ A high-performance Android application that captures camera frames, processes th
 - ⭐ **OpenGL Shader Effects**: 5 visual effects (Normal, Grayscale, Invert, Sepia, Edge Enhance)
 - ⭐ **HTTP Server**: Full REST API with 3 endpoints (`/`, `/latest-frame`, `/status`)
 
-## 🏗️ Architecture
+---
+
+## 📂 Implementation Reference
+
+### Must-Have Features - File Locations
+
+#### 1. Camera Feed Integration (Android)
+- **Main Implementation**: `app/src/main/java/com/example/edgedetectionviewer/MainActivity.kt`
+  - Lines 156-190: Camera2 API setup with SurfaceTexture
+  - Line 165: Buffer size set to 1280x720
+  
+#### 2. Frame Processing via OpenCV (C++)
+- **JNI Bridge**: `app/src/main/cpp/native-lib.cpp`
+  - Lines 15-60: JNI method `processCannyEdgeDetection()`
+- **OpenCV Processor**: `app/src/main/cpp/edge_processor.cpp`
+  - Lines 19-51: Canny edge detection implementation
+  - Lines 30-38: Processing pipeline (Grayscale → Blur → Canny → RGBA)
+- **Header**: `app/src/main/cpp/edge_processor.h`
+  - Line 12: EdgeProcessor class declaration
+
+#### 3. Render Output with OpenGL ES
+- **OpenGL Renderer**: `app/src/main/java/com/example/edgedetectionviewer/GLRenderer.kt`
+  - Lines 177-200: OpenGL ES 2.0 initialization
+  - Lines 243-320: Frame rendering with texture
+  - Lines 56-146: 5 shader programs (fragment shaders)
+- **CMake Config**: `app/src/main/cpp/CMakeLists.txt`
+  - OpenCV linking configuration
+
+#### 4. Web Viewer (TypeScript)
+- **TypeScript Implementation**: `web/src/index.ts`
+  - Lines 14-50: EdgeDetectionViewer class
+  - Lines 140-200: Canvas rendering and HTTP fetch
+- **HTML UI**: `web/index.html`
+  - Lines 18-35: Canvas and controls
+  - Lines 37-56: Stats panel
+- **Config**: `web/tsconfig.json`
+  - TypeScript compiler configuration
+
+### Bonus Features - File Locations
+
+#### Toggle Button (Raw ↔ Edge Detection)
+- **MainActivity**: `app/src/main/java/com/example/edgedetectionviewer/MainActivity.kt`
+  - Lines 62-68: Toggle button click handler
+  - Line 285: `isProcessingEnabled()` method
+- **GLRenderer**: `app/src/main/java/com/example/edgedetectionviewer/GLRenderer.kt`
+  - Lines 268-275: Edge detection mode logic
+
+#### FPS Counter
+- **MainActivity**: `app/src/main/java/com/example/edgedetectionviewer/MainActivity.kt`
+  - Lines 234-250: FPS calculation and display
+  - Lines 95-96: FPS counter initialization
+
+#### OpenGL Shader Effects
+- **GLRenderer**: `app/src/main/java/com/example/edgedetectionviewer/GLRenderer.kt`
+  - Lines 14-19: ShaderEffect enum (5 effects)
+  - Lines 56-146: Fragment shader code for each effect
+  - Lines 333-343: `nextShaderEffect()` method
+
+#### HTTP Server
+- **HTTP Server**: `app/src/main/java/com/example/edgedetectionviewer/HttpServer.kt`
+  - Lines 25-48: Server start and client handling
+  - Lines 118-157: `/latest-frame` endpoint
+  - Lines 176-194: `/status` endpoint
+  - Lines 202-238: `/` homepage endpoint
+- **MainActivity**: `app/src/main/java/com/example/edgedetectionviewer/MainActivity.kt`
+  - Lines 88-92: HTTP server initialization
+
+---
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
