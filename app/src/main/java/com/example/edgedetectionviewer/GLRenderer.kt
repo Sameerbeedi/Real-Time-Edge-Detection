@@ -235,6 +235,28 @@ class GLRenderer(private val context: Context, private val glSurfaceView: GLSurf
     
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
+        
+        // Calculate aspect ratios to fix image distortion
+        val viewAspect = width.toFloat() / height.toFloat()
+        val textureAspect = frameWidth.toFloat() / frameHeight.toFloat()
+        
+        // Reset to identity
+        for (i in mvpMatrix.indices) mvpMatrix[i] = 0f
+        mvpMatrix[0] = 1f
+        mvpMatrix[5] = 1f
+        mvpMatrix[10] = 1f
+        mvpMatrix[15] = 1f
+        
+        // Adjust for aspect ratio to prevent stretching
+        if (viewAspect > textureAspect) {
+            // View is wider - scale width
+            mvpMatrix[0] = textureAspect / viewAspect
+        } else {
+            // View is taller - scale height  
+            mvpMatrix[5] = viewAspect / textureAspect
+        }
+        
+        android.util.Log.d("EdgeDetection", "GLRenderer: Surface changed ${width}x${height}, aspect=$viewAspect, texture aspect=$textureAspect")
     }
     
     override fun onDrawFrame(gl: GL10?) {
