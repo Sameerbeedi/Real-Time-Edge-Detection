@@ -1,0 +1,120 @@
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/
+.gradle/
+local.properties
+.DS_Store
+
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+captures/
+
+# Gradle files
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio captures folder
+captures/
+
+# IntelliJ
+*.iml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
+.idea/modules.xml
+.idea/navEditor.xml
+.idea/jarRepositories.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# External native build folder generated in Android Studio 2.2 and later
+.externalNativeBuild
+.cxx/
+
+# NDK
+obj/
+libs/
+
+# OpenCV Android SDK (too large for git)
+app/src/main/cpp/opencv/
+opencv-*.zip
+
+# Android Profiling
+*.hprof
+
+# Log Files
+*.log
+
+# Operating System Files
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+
+# TypeScript / Node.js (web folder)
+web/node_modules/
+web/dist/
+web/*.log
+web/package-lock.json
+web/yarn.lock
+
+# TypeScript compiled files
+*.js.map
+*.d.ts.map
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.old
+
+# Android signing
+signing.properties
+keystore.properties
+
+# Misc
+*.orig
+*.rej
