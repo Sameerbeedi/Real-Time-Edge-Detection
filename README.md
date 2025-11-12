@@ -8,16 +8,20 @@ A high-performance Android application that captures camera frames, processes th
 
 ### Android App in Action
 
-**Raw Camera Mode**  
-![Raw Camera](images/test_raw.jpg)
+<p align="center">
+  <img src="images/test_raw.jpg" width="30%" alt="Raw Camera Mode" />
+  <img src="images/test_invert.jpg" width="30%" alt="Invert Shader Effect" />
+  <img src="images/test_edge.jpg" width="30%" alt="Edge Detection Mode" />
+</p>
 
-**Invert Shader Effect**  
-![Invert Effect](images/test_invert.jpg)
+<p align="center">
+  <img src="images/test_grayscale.jpg" width="30%" alt="Grayscale Shader" />
+  <img src="images/test_sepia.jpg" width="30%" alt="Sepia Shader" />
+</p>
 
-**Edge Detection Mode**  
-![Edge Detection](images/test_edge.jpg)
+**Raw Camera Mode** • **Invert Shader** • **Edge Detection** • **Grayscale** • **Sepia**
 
-*Features visible: Live camera feed, shader effects (Normal, Grayscale, Invert, Sepia, Edge Enhance), FPS counter, toggle button*
+*Features visible: Live camera feed, 5 shader effects (Normal, Grayscale, Invert, Sepia, Edge Enhance), FPS counter (9 FPS), toggle button*
 
 ---
 
