@@ -137,8 +137,6 @@ cd Real-Time-Edge-Detection-Viewer
 1. Open the project in **Android Studio**
 2. Sync Gradle files (Android Studio will prompt automatically)
 3. Build the project: **Build → Make Project** (or `Ctrl+F9` / `Cmd+F9`)
-4. Connect an Android device with USB debugging enabled
-5. Run the app: **Run → Run 'app'** (or `Shift+F10`)
 
 #### Troubleshooting Build Issues
 
@@ -147,7 +145,120 @@ If you encounter OpenCV linking errors:
 - Check that OpenCV `.so` files exist in `opencv/sdk/native/libs/arm64-v8a/`
 - Clean and rebuild: **Build → Clean Project**, then **Build → Rebuild Project**
 
-### Step 4: Build TypeScript Web Viewer
+### Step 4: Deploy to Android Device
+
+#### Option A: Deploy via Android Studio (Recommended)
+
+1. **Enable USB Debugging on Your Android Device:**
+   - Go to **Settings → About Phone**
+   - Tap **Build Number** 7 times to enable Developer Options
+   - Go to **Settings → Developer Options**
+   - Enable **USB Debugging**
+
+2. **Connect Your Device:**
+   - Connect your Android device to your computer via USB
+   - Accept the "Allow USB Debugging?" prompt on your device
+   - Verify connection: In Android Studio, you should see your device in the device dropdown
+
+3. **Run the App:**
+   - Click the **Run** button (green triangle) or press `Shift+F10`
+   - Select your device from the deployment target list
+   - Wait for the app to build and install
+   - The app will automatically launch on your device
+
+#### Option B: Deploy via Command Line (Gradle)
+
+```powershell
+# Build debug APK
+./gradlew assembleDebug
+
+# Install on connected device
+./gradlew installDebug
+
+# Launch the app
+adb shell am start -n com.example.edgedetectionviewer/.MainActivity
+```
+
+The APK will be located at: `app/build/outputs/apk/debug/app-debug.apk`
+
+#### Option C: Deploy via Android Emulator
+
+If you don't have a physical device:
+
+1. **Create an Emulator:**
+   - In Android Studio: **Tools → Device Manager**
+   - Click **Create Device**
+   - Select a device (e.g., Pixel 5)
+   - Download and select a system image (API 24+, recommended: API 34)
+   - Click **Finish**
+
+2. **Configure Emulator Camera:**
+   - Edit the emulator settings
+   - Set **Front Camera** and **Back Camera** to **Webcam0** (or Virtual scene)
+
+3. **Run the App:**
+   - Start the emulator
+   - Click **Run** and select the emulator
+   - Grant camera permissions when prompted
+
+#### Option D: Build Release APK for Distribution
+
+```powershell
+# Build release APK (unsigned)
+./gradlew assembleRelease
+
+# Or build signed APK (after configuring keystore)
+./gradlew assembleRelease --stacktrace
+```
+
+**To sign the APK:**
+
+1. Generate a keystore:
+   ```powershell
+   keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias
+   ```
+
+2. Add to `app/build.gradle.kts`:
+   ```kotlin
+   android {
+       signingConfigs {
+           create("release") {
+               storeFile = file("path/to/my-release-key.jks")
+               storePassword = "your-password"
+               keyAlias = "my-key-alias"
+               keyPassword = "your-password"
+           }
+       }
+       buildTypes {
+           release {
+               signingConfig = signingConfigs.getByName("release")
+               // ... other config
+           }
+       }
+   }
+   ```
+
+3. Build signed APK:
+   ```powershell
+   ./gradlew assembleRelease
+   ```
+
+The signed APK will be at: `app/build/outputs/apk/release/app-release.apk`
+
+#### Verify Installation
+
+```powershell
+# List installed packages
+adb shell pm list packages | findstr edgedetection
+
+# Check app is running
+adb shell dumpsys activity | findstr edgedetection
+
+# View app logs
+adb logcat | findstr "EdgeDetection"
+```
+
+### Step 5: Build TypeScript Web Viewer
 
 ```bash
 cd web
@@ -162,13 +273,28 @@ Open browser to `http://localhost:8080` to view the web interface.
 
 ### Android App
 
-1. Launch the app on your Android device
-2. Grant camera permission when prompted
-3. The camera feed will display in real-time
-4. Tap **"Toggle Mode"** button to switch between:
-   - Raw camera feed
-   - Edge-detected output (Canny)
-5. View FPS counter at the bottom of the screen
+1. **First Launch:**
+   - Launch the app on your Android device
+   - Grant camera permission when prompted
+   - Wait for the camera to initialize (1-2 seconds)
+
+2. **Using the App:**
+   - The camera feed will display in real-time
+   - Tap the **"Toggle Mode"** button to switch between:
+     - **Raw Mode:** Live camera feed without processing
+     - **Edge Mode:** Real-time Canny edge detection overlay
+   - View the **FPS counter** at the bottom to monitor performance
+
+3. **Performance Tips:**
+   - For best results, use in well-lit environments
+   - Point camera at high-contrast scenes for better edge detection
+   - Close background apps to improve FPS
+   - Expected performance: 15-30 FPS depending on device capabilities
+
+4. **Troubleshooting:**
+   - **Black screen:** Check camera permissions in Settings → Apps → Edge Detection Viewer
+   - **Low FPS:** Close background apps, ensure good lighting
+   - **App crashes:** Check logcat for errors: `adb logcat | findstr EdgeDetection`
 
 ### Web Viewer
 
