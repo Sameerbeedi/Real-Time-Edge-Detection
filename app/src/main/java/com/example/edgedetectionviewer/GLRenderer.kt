@@ -28,6 +28,13 @@ class GLRenderer(private val context: Context, private val glSurfaceView: GLSurf
     private var vertexBuffer: FloatBuffer
     private var textureBuffer: FloatBuffer
     
+    // For edge detection processing
+    private var processedTextureId = 0
+    private var frameWidth = 1280
+    private var frameHeight = 720
+    private var pixelBuffer: ByteBuffer? = null
+    private var processedBuffer: ByteArray? = null
+    
     private var positionHandle = 0
     private var textureCoordHandle = 0
     private var textureSamplerHandle = 0
@@ -159,6 +166,11 @@ class GLRenderer(private val context: Context, private val glSurfaceView: GLSurf
             .put(textureCoords)
         textureBuffer.position(0)
         
+        // Initialize buffers for edge detection processing
+        val bufferSize = frameWidth * frameHeight * 4  // RGBA
+        pixelBuffer = ByteBuffer.allocateDirect(bufferSize)
+        processedBuffer = ByteArray(bufferSize)
+        
         NativeLib.initNative()
     }
     
@@ -236,19 +248,20 @@ class GLRenderer(private val context: Context, private val glSurfaceView: GLSurf
             return
         }
         
-        // Check if we should process the frame with edge detection
+        // Check if we should apply edge detection processing
         val mainActivity = context as? MainActivity
         val shouldProcess = mainActivity?.isProcessingEnabled() ?: false
         
-        if (shouldProcess) {
-            android.util.Log.d("EdgeDetection", "GLRenderer: Processing mode ENABLED - applying Canny edge detection")
-            // TODO: Apply edge detection processing here
-            // This would involve reading the texture, processing with OpenCV, and uploading back
+        // Determine which shader effect to use
+        val effectToUse = if (shouldProcess) {
+            android.util.Log.d("EdgeDetection", "GLRenderer: Processing mode ENABLED - using EDGE_ENHANCE shader for edge detection")
+            ShaderEffect.EDGE_ENHANCE  // Use edge enhancement shader for edge detection
         } else {
-            android.util.Log.v("EdgeDetection", "GLRenderer: Raw mode - no processing")
+            android.util.Log.v("EdgeDetection", "GLRenderer: Raw mode - using $currentEffect shader")
+            currentEffect  // Use the currently selected shader effect
         }
         
-        val programId = programs[currentEffect]
+        val programId = programs[effectToUse]
         if (programId == null) {
             android.util.Log.e("EdgeDetection", "GLRenderer: Program is null for effect $currentEffect")
             return
