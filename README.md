@@ -2,6 +2,8 @@
 
 A high-performance Android application that captures camera frames, processes them using OpenCV (C++), and displays results with OpenGL ES 2.0. Includes a TypeScript web viewer for displaying processed frames.
 
+**Repository:** [https://github.com/Sameerbeedi/Real-Time-Edge-Detection](https://github.com/Sameerbeedi/Real-Time-Edge-Detection)
+
 ---
 
 ## 📸 Screenshots
